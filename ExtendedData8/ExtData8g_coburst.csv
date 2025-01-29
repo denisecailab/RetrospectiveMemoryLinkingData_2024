@@ -1,0 +1,25 @@
+,Mouse,Amplitude,EnsembleCombo,Fraction
+3,RLI8-1,0mA,Overlap x Neutral,48.63665143215388
+4,RLI8-1,0mA,Overlap x Aversive,33.199410581488564
+5,RLI8-1,0mA,Neutral x Aversive,20.812845487408094
+6,RLI8-1,0mA,Overlap x Neutral x Aversive,401.2661910620104
+3,RLI8-2,0mA,Overlap x Neutral,45.28465989537812
+4,RLI8-2,0mA,Overlap x Aversive,52.99415459294339
+5,RLI8-2,0mA,Neutral x Aversive,105.24686424355136
+6,RLI8-2,0mA,Overlap x Neutral x Aversive,3310.637882055862
+3,RLI8-4,0mA,Overlap x Neutral,68.50140198431957
+4,RLI8-4,0mA,Overlap x Aversive,64.91145081085043
+5,RLI8-4,0mA,Neutral x Aversive,35.81288232702989
+6,RLI8-4,0mA,Overlap x Neutral x Aversive,1993.5458750784023
+3,RLI8-5,0mA,Overlap x Neutral,38.79715217327767
+4,RLI8-5,0mA,Overlap x Aversive,54.29018223047036
+5,RLI8-5,0mA,Neutral x Aversive,16.8966308039187
+6,RLI8-5,0mA,Overlap x Neutral x Aversive,345.24902775440285
+3,RLI8-7,0mA,Overlap x Neutral,81.48993260221161
+4,RLI8-7,0mA,Overlap x Aversive,63.54950658914635
+5,RLI8-7,0mA,Neutral x Aversive,34.22319133785662
+6,RLI8-7,0mA,Overlap x Neutral x Aversive,2129.227825917537
+3,RLI8-8,0mA,Overlap x Neutral,67.12008017929557
+4,RLI8-8,0mA,Overlap x Aversive,79.79250645003494
+5,RLI8-8,0mA,Neutral x Aversive,25.890421232328425
+6,RLI8-8,0mA,Overlap x Neutral x Aversive,2103.423434792591
