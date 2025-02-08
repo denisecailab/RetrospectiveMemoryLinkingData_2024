@@ -25,6 +25,7 @@ def plotMeanData(
     plot_datalines=False,
     y_range=(0, 100),
     y_title=None,
+    x_title=None,
     text_size=20,
     font_family='Arial',
     plot_title=None,
@@ -54,8 +55,8 @@ def plotMeanData(
         whether or not to plot individual datapoints, or individual datalines. Defaults are False.
     y_range : tuple
         tuple or min and max values of plot
-    y_title : str
-        y-axis title. Default is None.
+    y_title, x_title : str
+        y-axis and x-axis title respectively. Default is None.
     text_size : int
         size of text to use in the plot. Default is 20.
     font_family : str
@@ -146,6 +147,7 @@ def plotMeanData(
     fig.update_layout(
         dragmode="pan",
         yaxis_title=y_title,
+        xaxis_title=x_title,
         font=dict(size=text_size, family=font_family),
         title_text=plot_title,
         autosize=False,
@@ -194,6 +196,9 @@ def plotAcrossGroups(
     plot_datapoints=False,
     plot_datalines=False,
     y_title=None,
+    x_title=None,
+    add_hline=True,
+    hline_y=0,
     text_size=20,
     font_family='Arial',
     opacity=0.8,
@@ -290,10 +295,12 @@ def plotAcrossGroups(
                     row=1,
                     col=i + 1,
                 )
-    fig.add_hline(y=0, row=1, col='all', line_width=1, opacity=1, line_color='black')
+    if add_hline:
+        fig.add_hline(y=hline_y, row=1, col='all', line_width=1, opacity=1, line_color='black')
     fig.update_layout(
         dragmode="pan",
         yaxis_title=y_title,
+        xaxis_title=x_title,
         font=dict(size=text_size, family=font_family),
         title_text=plot_title,
         autosize=False,
@@ -669,6 +676,148 @@ def plotCorrelation_multifit(
             }
             }
     fig.show(config=config)
+
+
+## Line Graphs
+## ===========
+
+def plotAcrossTime(
+    agg_data,
+    plot_var,
+    colors,
+    title,
+    groupby=None,
+    separateby=None,
+    time_var='Time',
+    datapoint_var="Mouse",
+    y_range=None,
+    mean_line_color='black',
+    plot_datapoints=False,
+    plot_datalines=False,
+    y_title=None,
+    x_title=None,
+    add_hline=True,
+    hline_y=0,
+    text_size=20,
+    font_family='Arial',
+    opacity=0.8,
+    plot_width=600,
+    plot_height=600,
+    tick_angle=45,
+    scale_y=True,
+    h_spacing=0.2,
+    save_path=None,
+    plot_scale=5
+):
+    """
+    Plot multiple line graphs (one for each unique type in 'separateby') with multiple line graphs on each plot (one bar for each unique type in 'groupby'), across time ('time_var').
+    """
+
+    if groupby is None:
+        groupby = 'group_blank'
+        agg_data[groupby] = ''
+        agg_data[groupby] = pd.Categorical(agg_data[groupby])
+    if separateby is None:
+        separateby = 'sep_blank'
+        agg_data[separateby] = ''
+        agg_data[separateby] = pd.Categorical(agg_data[separateby])
+
+    # Note that the separating variable must be of type pd.Categorical(ordered=True), such that its unique values can be sorted
+    # This can be done by: agg_data[separateby] = pd.Categorical(agg_data[separateby], categories=['list','of','unique','values'], ordered=True)
+    subplot_titles = agg_data[separateby].unique().sort_values()
+    fig = make_subplots(
+        cols=len(subplot_titles), subplot_titles=subplot_titles, horizontal_spacing=h_spacing, shared_yaxes=scale_y
+    )
+    for i, sep_val in enumerate(agg_data[separateby].unique().sort_values()):
+        separateby_data = agg_data[agg_data[separateby] == sep_val]
+        for j, group_val in enumerate(separateby_data[groupby].unique().sort_values()):
+            sub_data = separateby_data[separateby_data[groupby] == group_val]
+            means = sub_data[[time_var, plot_var]].groupby(time_var).mean()[plot_var].sort_index()
+            sems = sub_data[[time_var, plot_var]].groupby(time_var).sem()[plot_var].sort_index()
+            xlabels = means.index.values
+
+            fig.add_trace(
+                go.Scattergl(
+                    x=xlabels,
+                    y=means[xlabels].values,
+                    error_y=dict(type="data", array=sems.values, visible=True),
+                    mode='lines+markers',
+                    marker_color=colors[j],
+                    marker=dict(size=15, line=dict(width=1, color='black'), opacity=opacity),
+                    line=dict(color=colors[j], width=4)
+                ),
+                row=1,
+                col=i + 1,
+            )
+
+            if plot_datapoints:
+                for point in sub_data[datapoint_var].unique():
+                    point_data = sub_data[sub_data[datapoint_var] == point]
+                    fig.add_trace(
+                        go.Scattergl(
+                            x=point_data[time_var].values,
+                            y=point_data[plot_var].values,
+                            mode="markers",
+                            marker=dict(color="black", symbol='circle-open', size=10),
+                            name=str(point),
+                        ),
+                        row=1,
+                        col=i + 1,
+                    )
+            if plot_datalines:
+                for line in sub_data[datapoint_var].unique():
+                    line_data = sub_data[sub_data[datapoint_var] == line]
+                    line_data = line_data.iloc[line_data[time_var].argsort(),:]
+                    fig.add_trace(
+                        go.Scattergl(
+                            x=line_data[time_var].values,
+                            y=line_data[plot_var].values,
+                            mode="lines",
+                            line=dict(width=1.5, color='grey'),
+                            name=str(line),
+                        ),
+                        row=1,
+                        col=i + 1,
+                    )
+    if add_hline:
+        fig.add_hline(y=hline_y, row=1, col='all', line_width=1, opacity=1, line_color='black')
+    fig.update_layout(
+        dragmode="pan",
+        yaxis_title=y_title,
+        font=dict(size=text_size, family=font_family),
+        title_text=title,
+        autosize=False,
+        width=plot_width,
+        height=plot_height,
+        template="simple_white",
+        showlegend=False,
+    )
+    fig.update_xaxes(title_text=x_title)
+    if tick_angle is not None:
+        fig.update_xaxes(tickangle=tick_angle)
+    if y_range is not None:
+        fig.update_yaxes(range=y_range)
+    if save_path is not None:
+        if not os.path.exists(os.path.dirname(save_path)):
+            os.mkdir(os.path.dirname(save_path))
+        if save_path.split('.')[-1] == 'html':
+            fig.write_html(save_path)
+        elif save_path.split('.')[-1] != 'eps':
+            fig.write_image(save_path, scale=plot_scale)
+        else:
+            fig.write_image(save_path, format=save_path.split('.')[-1])
+    config = {
+        'scrollZoom':True,
+        'toImageButtonOptions': {
+            'format': 'svg',
+            'filename': 'custom_image',
+            'height': plot_height,
+            'width': plot_width,
+            'scale':plot_scale
+            }
+            }
+    fig.show(config=config)
+
 
 
 ## Misc. Graphs
